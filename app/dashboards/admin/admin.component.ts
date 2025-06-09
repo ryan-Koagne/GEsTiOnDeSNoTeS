@@ -5,15 +5,44 @@ import { DashboardService, AdminDashboardData } from '../../services/api/dashboa
 import { TeacherService, Teacher, CreateTeacherRequest, UpdateTeacherRequest } from '../../services/api/teacher.service';
 import { StudentService, Student, CreateStudentRequest, UpdateStudentRequest } from '../../services/api/student.service';
 import { ClassService, Class } from '../../services/api/class.service';
+import { SubjectService, Subject, CreateSubjectRequest, UpdateSubjectRequest } from '../../services/api/subject.service';
 import { NotificationService } from '../../services/core/notification.service';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { SubjectService } from '../../services/api/subject.service';
-
+import { Subject as RxSubject, takeUntil, forkJoin } from 'rxjs';
 
 interface ModalState {
   isOpen: boolean;
   mode: 'create' | 'edit' | 'view';
   data?: any;
+}
+
+interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  phone?: string;
+  address?: string;
+  created_at: string;
+  is_active: boolean;
+}
+
+interface CreateAdminRequest {
+  username: string;
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  address?: string;
+}
+
+interface UpdateAdminRequest {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  address?: string;
 }
 
 @Component({
@@ -23,7 +52,7 @@ interface ModalState {
   styleUrl: './admin.component.scss'
 })
 export class AdminComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+  private destroy$ = new RxSubject<void>();
   
   // Navigation
   activeTab = 'statistics';
@@ -39,23 +68,32 @@ export class AdminComponent implements OnInit, OnDestroy {
   teachers: Teacher[] = [];
   students: Student[] = [];
   classes: Class[] = [];
+  subjects: Subject[] = [];
+  admins: AdminUser[] = [];
   
   // Loading states
   teachersLoading = false;
   studentsLoading = false;
+  classesLoading = false;
+  adminsLoading = false;
   
   // Modal states
   teacherModal: ModalState = { isOpen: false, mode: 'create' };
   studentModal: ModalState = { isOpen: false, mode: 'create' };
+  classModal: ModalState = { isOpen: false, mode: 'create' };
+  adminModal: ModalState = { isOpen: false, mode: 'create' };
   
   // Forms
   teacherForm!: FormGroup;
   studentForm!: FormGroup;
+  classForm!: FormGroup;
+  adminForm!: FormGroup;
 
-  
   // Search and filters
   teacherSearchTerm = '';
   studentSearchTerm = '';
+  classSearchTerm = '';
+  adminSearchTerm = '';
   selectedClassFilter = '';
 
   // Tab configuration
@@ -73,15 +111,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private studentService: StudentService,
     private classService: ClassService,
-    private notificationService: NotificationService,
-    private fb: FormBuilder,
     private subjectService: SubjectService,
-
+    private notificationService: NotificationService,
+    private fb: FormBuilder
   ) {
     this.initializeForms();
   }
-
-  subjects: any[] = [];
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -94,20 +129,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadSubjects(): void {
-  this.subjectService.getAllSubjects()
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (subjects) => {
-        this.subjects = subjects;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des matières:', error);
-      }
-    });
-}
-
-
   private initializeForms(): void {
     this.teacherForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -119,7 +140,6 @@ export class AdminComponent implements OnInit, OnDestroy {
       address: [''],
       hire_date: [''],
       subject_ids: [[], [Validators.required]]
-      
     });
 
     this.studentForm = this.fb.group({
@@ -134,6 +154,22 @@ export class AdminComponent implements OnInit, OnDestroy {
       address: [''],
       birth_date: ['']
     });
+
+    this.classForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      level: ['', [Validators.required]],
+      academic_year: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{4}$/)]]
+    });
+
+    this.adminForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      first_name: ['', [Validators.required, Validators.minLength(2)]],
+      last_name: ['', [Validators.required, Validators.minLength(2)]],
+      phone: [''],
+      address: ['']
+    });
   }
 
   setActiveTab(tabId: string): void {
@@ -144,6 +180,10 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.loadTeachers();
     } else if (tabId === 'students' && this.students.length === 0) {
       this.loadStudents();
+    } else if (tabId === 'classes' && this.classes.length === 0) {
+      this.loadClasses();
+    } else if (tabId === 'admins' && this.admins.length === 0) {
+      this.loadAdmins();
     }
   }
 
@@ -181,14 +221,31 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   private loadClasses(): void {
+    this.classesLoading = true;
+    
     this.classService.getAllClasses()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (classes) => {
           this.classes = classes;
+          this.classesLoading = false;
         },
         error: (error) => {
+          this.classesLoading = false;
           console.error('Erreur lors du chargement des classes:', error);
+        }
+      });
+  }
+
+  private loadSubjects(): void {
+    this.subjectService.getAllSubjects()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (subjects) => {
+          this.subjects = subjects;
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des matières:', error);
         }
       });
   }
@@ -218,7 +275,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     
     if (mode === 'create') {
       this.teacherForm.reset();
-      // Enable password field for creation
       this.teacherForm.get('password')?.enable();
     } else if (mode === 'edit' && teacher) {
       this.teacherForm.patchValue({
@@ -231,10 +287,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         hire_date: teacher.hire_date || '',
         subject_ids: teacher.subjects.map(s => s.id)
       });
-      // Disable password field for editing
       this.teacherForm.get('password')?.disable();
-    } else if (mode === 'view' && teacher) {
-      // For view mode, just display the data
     }
   }
 
@@ -358,7 +411,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     
     if (mode === 'create') {
       this.studentForm.reset();
-      // Enable password field for creation
       this.studentForm.get('password')?.enable();
     } else if (mode === 'edit' && student) {
       this.studentForm.patchValue({
@@ -372,10 +424,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         address: student.address || '',
         birth_date: student.birth_date || ''
       });
-      // Disable password field for editing
       this.studentForm.get('password')?.disable();
-    } else if (mode === 'view' && student) {
-      // For view mode, just display the data
     }
   }
 
@@ -478,6 +527,223 @@ export class AdminComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ==================== CLASSES CRUD ====================
+
+  openClassModal(mode: 'create' | 'edit' | 'view', classData?: Class): void {
+    this.classModal = { isOpen: true, mode, data: classData };
+    
+    if (mode === 'create') {
+      this.classForm.reset();
+      // Set default academic year
+      const currentYear = new Date().getFullYear();
+      const academicYear = `${currentYear}-${currentYear + 1}`;
+      this.classForm.patchValue({ academic_year: academicYear });
+    } else if (mode === 'edit' && classData) {
+      this.classForm.patchValue({
+        name: classData.name,
+        level: classData.level,
+        academic_year: classData.academic_year
+      });
+    }
+  }
+
+  closeClassModal(): void {
+    this.classModal.isOpen = false;
+    this.classForm.reset();
+  }
+
+  saveClass(): void {
+    if (this.classForm.invalid) {
+      this.markFormGroupTouched(this.classForm);
+      return;
+    }
+
+    const formValue = this.classForm.value;
+    
+    if (this.classModal.mode === 'create') {
+      this.classService.createClass(formValue)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (newClass) => {
+            this.classes.push(newClass);
+            this.closeClassModal();
+            this.notificationService.success('Classe créée avec succès');
+          },
+          error: (error) => {
+            this.notificationService.error('Erreur lors de la création de la classe');
+            console.error('Erreur création class:', error);
+          }
+        });
+    } else if (this.classModal.mode === 'edit' && this.classModal.data) {
+      this.classService.updateClass(this.classModal.data.id, formValue)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (updatedClass) => {
+            const index = this.classes.findIndex(c => c.id === updatedClass.id);
+            if (index !== -1) {
+              this.classes[index] = updatedClass;
+            }
+            this.closeClassModal();
+            this.notificationService.success('Classe mise à jour avec succès');
+          },
+          error: (error) => {
+            this.notificationService.error('Erreur lors de la mise à jour de la classe');
+            console.error('Erreur update class:', error);
+          }
+        });
+    }
+  }
+
+  deleteClass(classData: Class): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer la classe ${classData.name} ?`)) {
+      this.classService.deleteClass(classData.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.classes = this.classes.filter(c => c.id !== classData.id);
+            this.notificationService.success('Classe supprimée avec succès');
+          },
+          error: (error) => {
+            this.notificationService.error('Erreur lors de la suppression de la classe');
+            console.error('Erreur delete class:', error);
+          }
+        });
+    }
+  }
+
+  get filteredClasses(): Class[] {
+    return this.classes.filter(classData => {
+      const searchMatch = !this.classSearchTerm || 
+        classData.name.toLowerCase().includes(this.classSearchTerm.toLowerCase()) ||
+        classData.level.toLowerCase().includes(this.classSearchTerm.toLowerCase());
+      
+      return searchMatch;
+    });
+  }
+
+  // ==================== ADMINS CRUD ====================
+
+  private loadAdmins(): void {
+    this.adminsLoading = true;
+    // Simulate admin data since we don't have a specific admin service
+    // In a real application, you would have an AdminService
+    setTimeout(() => {
+      this.admins = [
+        {
+          id: 1,
+          username: 'admin1',
+          email: 'admin1@school.com',
+          first_name: 'Jean',
+          last_name: 'Dupont',
+          full_name: 'Jean Dupont',
+          phone: '+237123456789',
+          address: 'Yaoundé, Cameroun',
+          created_at: '2024-01-15T10:00:00Z',
+          is_active: true
+        },
+        {
+          id: 2,
+          username: 'admin2',
+          email: 'admin2@school.com',
+          first_name: 'Marie',
+          last_name: 'Martin',
+          full_name: 'Marie Martin',
+          phone: '+237987654321',
+          address: 'Douala, Cameroun',
+          created_at: '2024-02-20T14:30:00Z',
+          is_active: true
+        }
+      ];
+      this.adminsLoading = false;
+    }, 1000);
+  }
+
+  openAdminModal(mode: 'create' | 'edit' | 'view', admin?: AdminUser): void {
+    this.adminModal = { isOpen: true, mode, data: admin };
+    
+    if (mode === 'create') {
+      this.adminForm.reset();
+      this.adminForm.get('password')?.enable();
+    } else if (mode === 'edit' && admin) {
+      this.adminForm.patchValue({
+        username: admin.username,
+        email: admin.email,
+        first_name: admin.first_name,
+        last_name: admin.last_name,
+        phone: admin.phone || '',
+        address: admin.address || ''
+      });
+      this.adminForm.get('password')?.disable();
+    }
+  }
+
+  closeAdminModal(): void {
+    this.adminModal.isOpen = false;
+    this.adminForm.reset();
+  }
+
+  saveAdmin(): void {
+    if (this.adminForm.invalid) {
+      this.markFormGroupTouched(this.adminForm);
+      return;
+    }
+
+    const formValue = this.adminForm.value;
+    
+    if (this.adminModal.mode === 'create') {
+      // Simulate admin creation
+      const newAdmin: AdminUser = {
+        id: this.admins.length + 1,
+        username: formValue.username,
+        email: formValue.email,
+        first_name: formValue.first_name,
+        last_name: formValue.last_name,
+        full_name: `${formValue.first_name} ${formValue.last_name}`,
+        phone: formValue.phone,
+        address: formValue.address,
+        created_at: new Date().toISOString(),
+        is_active: true
+      };
+      
+      this.admins.push(newAdmin);
+      this.closeAdminModal();
+      this.notificationService.success('Administrateur créé avec succès');
+    } else if (this.adminModal.mode === 'edit' && this.adminModal.data) {
+      // Simulate admin update
+      const index = this.admins.findIndex(a => a.id === this.adminModal.data.id);
+      if (index !== -1) {
+        this.admins[index] = {
+          ...this.admins[index],
+          first_name: formValue.first_name,
+          last_name: formValue.last_name,
+          full_name: `${formValue.first_name} ${formValue.last_name}`,
+          phone: formValue.phone,
+          address: formValue.address
+        };
+      }
+      this.closeAdminModal();
+      this.notificationService.success('Administrateur mis à jour avec succès');
+    }
+  }
+
+  deleteAdmin(admin: AdminUser): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'administrateur ${admin.full_name} ?`)) {
+      this.admins = this.admins.filter(a => a.id !== admin.id);
+      this.notificationService.success('Administrateur supprimé avec succès');
+    }
+  }
+
+  get filteredAdmins(): AdminUser[] {
+    return this.admins.filter(admin => {
+      const searchMatch = !this.adminSearchTerm || 
+        admin.full_name.toLowerCase().includes(this.adminSearchTerm.toLowerCase()) ||
+        admin.email.toLowerCase().includes(this.adminSearchTerm.toLowerCase()) ||
+        admin.username.toLowerCase().includes(this.adminSearchTerm.toLowerCase());
+      
+      return searchMatch;
+    });
+  }
+
   // ==================== UTILITY METHODS ====================
 
   refreshData(): void {
@@ -546,10 +812,19 @@ export class AdminComponent implements OnInit, OnDestroy {
     return teacher.id || teacher.full_name || index.toString();
   }
 
+  trackByClassId(index: number, classData: any): string {
+    return classData.id || classData.name || index.toString();
+  }
+
+  trackByAdminId(index: number, admin: any): string {
+    return admin.id || admin.username || index.toString();
+  }
+
   // Mock methods for future functionality
   handleAdminAction(action: string): void {
-    console.log(`Action admin: ${action}`);
-    // TODO: Implement admin management
+    if (action === 'create') {
+      this.openAdminModal('create');
+    }
   }
 
   handleTeacherAction(action: string): void {
@@ -565,8 +840,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   handleClassAction(action: string): void {
-    console.log(`Action classe: ${action}`);
-    // TODO: Implement class management
+    if (action === 'create') {
+      this.openClassModal('create');
+    }
   }
 
   handleScheduleAction(action: string): void {
