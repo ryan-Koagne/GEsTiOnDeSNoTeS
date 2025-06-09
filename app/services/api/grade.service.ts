@@ -36,6 +36,10 @@ export interface UpdateGradeRequest {
   semester?: string;
   academic_year?: string;
   exam_type?: string;
+  // Pour les admins uniquement
+  student_id?: number;
+  subject_id?: number;
+  teacher_id?: number;
 }
 
 export interface ImportGradesRequest {
@@ -127,19 +131,37 @@ export class GradeService {
   /**
    * Récupérer les notes d'un étudiant spécifique
    */
-  getStudentGrades(studentId: number, filters?: Omit<GradeFilters, 'student_id'>): Observable<Grade[]> {
-    let params = new HttpParams().set('student_id', studentId.toString());
+  getStudentGrades(studentId: number, semester?: string, academicYear?: string): Observable<Grade[]> {
+    let params = new HttpParams();
+    
+    if (semester) {
+      params = params.set('semester', semester);
+    }
+    if (academicYear) {
+      params = params.set('academic_year', academicYear);
+    }
+
+    return this.http.get<Grade[]>(`${this.configService.getApiUrl()}/students/${studentId}/grades`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Récupérer les notes par matière
+   */
+  getSubjectGrades(subjectId: number, filters?: Omit<GradeFilters, 'subject_id'>): Observable<Grade[]> {
+    let params = new HttpParams();
     
     if (filters) {
       Object.keys(filters).forEach(key => {
-        const value = filters[key as keyof Omit<GradeFilters, 'student_id'>];
+        const value = filters[key as keyof Omit<GradeFilters, 'subject_id'>];
         if (value !== undefined && value !== null) {
           params = params.set(key, value.toString());
         }
       });
     }
 
-    return this.http.get<Grade[]>(this.baseUrl, { params }).pipe(
+    return this.http.get<Grade[]>(`${this.configService.getApiUrl()}/subjects/${subjectId}/grades`, { params }).pipe(
       catchError(this.handleError)
     );
   }
@@ -153,26 +175,6 @@ export class GradeService {
     if (filters) {
       Object.keys(filters).forEach(key => {
         const value = filters[key as keyof Omit<GradeFilters, 'teacher_id'>];
-        if (value !== undefined && value !== null) {
-          params = params.set(key, value.toString());
-        }
-      });
-    }
-
-    return this.http.get<Grade[]>(this.baseUrl, { params }).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  /**
-   * Récupérer les notes par matière
-   */
-  getSubjectGrades(subjectId: number, filters?: Omit<GradeFilters, 'subject_id'>): Observable<Grade[]> {
-    let params = new HttpParams().set('subject_id', subjectId.toString());
-    
-    if (filters) {
-      Object.keys(filters).forEach(key => {
-        const value = filters[key as keyof Omit<GradeFilters, 'subject_id'>];
         if (value !== undefined && value !== null) {
           params = params.set(key, value.toString());
         }
@@ -248,6 +250,84 @@ export class GradeService {
     }
 
     return this.http.get<StudentGradeSummary>(`${this.baseUrl}/student/${studentId}/summary`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Créer plusieurs notes en lot
+   */
+  createBulkGrades(gradesData: CreateGradeRequest[]): Observable<Grade[]> {
+    return this.http.post<Grade[]>(`${this.baseUrl}/bulk`, { grades: gradesData }).pipe(
+      tap(() => this.refreshGrades()),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Mettre à jour plusieurs notes en lot
+   */
+  updateBulkGrades(updates: { id: number; data: UpdateGradeRequest }[]): Observable<Grade[]> {
+    return this.http.put<Grade[]>(`${this.baseUrl}/bulk`, { updates }).pipe(
+      tap(() => this.refreshGrades()),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Supprimer plusieurs notes en lot
+   */
+  deleteBulkGrades(gradeIds: number[]): Observable<{ message: string; deleted_count: number }> {
+    return this.http.delete<{ message: string; deleted_count: number }>(`${this.baseUrl}/bulk`, { 
+      body: { grade_ids: gradeIds } 
+    }).pipe(
+      tap(() => this.refreshGrades()),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Exporter les notes au format CSV
+   */
+  exportGradesCSV(filters?: GradeFilters): Observable<Blob> {
+    let params = new HttpParams();
+    
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        const value = filters[key as keyof GradeFilters];
+        if (value !== undefined && value !== null) {
+          params = params.set(key, value.toString());
+        }
+      });
+    }
+
+    return this.http.get(`${this.baseUrl}/export/csv`, { 
+      params, 
+      responseType: 'blob' 
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Exporter les notes au format Excel
+   */
+  exportGradesExcel(filters?: GradeFilters): Observable<Blob> {
+    let params = new HttpParams();
+    
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        const value = filters[key as keyof GradeFilters];
+        if (value !== undefined && value !== null) {
+          params = params.set(key, value.toString());
+        }
+      });
+    }
+
+    return this.http.get(`${this.baseUrl}/export/excel`, { 
+      params, 
+      responseType: 'blob' 
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -407,6 +487,51 @@ export class GradeService {
       isValid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * Vérifier les permissions pour une note
+   */
+  canModifyGrade(grade: Grade, userRole: string, currentUserId: number): boolean {
+    if (userRole === 'admin') {
+      return true;
+    }
+    
+    if (userRole === 'teacher') {
+      return grade.teacher_id === currentUserId;
+    }
+    
+    return false; // Les étudiants ne peuvent pas modifier les notes
+  }
+
+  /**
+   * Vérifier les permissions pour voir une note
+   */
+  canViewGrade(grade: Grade, userRole: string, currentUserId: number): boolean {
+    if (userRole === 'admin') {
+      return true;
+    }
+    
+    if (userRole === 'teacher') {
+      return grade.teacher_id === currentUserId;
+    }
+    
+    if (userRole === 'student') {
+      return grade.student_id === currentUserId;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Télécharger un modèle de fichier d'import
+   */
+  downloadImportTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/import/template`, { 
+      responseType: 'blob' 
+    }).pipe(
+      catchError(this.handleError)
+    );
   }
 
   /**

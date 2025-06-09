@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ConfigService } from '../core/config.service';
@@ -47,11 +47,29 @@ export class SubjectService {
     this.apiUrl = `${this.configService.getApiUrl()}/subjects`;
   }
 
+    private readonly TOKEN_KEY = 'school_auth_token'
+
+   getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  /**
+   * Crée les en-têtes d'authentification avec le token JWT
+   */
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.getToken();
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   /**
    * Récupérer toutes les matières
    */
   getAllSubjects(): Observable<Subject[]> {
-    return this.http.get<Subject[]>(this.apiUrl).pipe(
+    return this.http.get<Subject[]>(this.apiUrl, {
+      headers: this.getAuthHeaders()
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -60,7 +78,9 @@ export class SubjectService {
    * Récupérer une matière par ID
    */
   getSubject(id: number): Observable<Subject> {
-    return this.http.get<Subject>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.get<Subject>(`${this.apiUrl}/${id}`,{
+      headers: this.getAuthHeaders()
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -69,7 +89,9 @@ export class SubjectService {
    * Créer une nouvelle matière
    */
   createSubject(subjectData: CreateSubjectRequest): Observable<Subject> {
-    return this.http.post<Subject>(this.apiUrl, subjectData).pipe(
+    return this.http.post<Subject>(this.apiUrl, subjectData,{
+      headers: this.getAuthHeaders()
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -78,7 +100,9 @@ export class SubjectService {
    * Mettre à jour une matière
    */
   updateSubject(id: number, subjectData: UpdateSubjectRequest): Observable<Subject> {
-    return this.http.put<Subject>(`${this.apiUrl}/${id}`, subjectData).pipe(
+    return this.http.put<Subject>(`${this.apiUrl}/${id}`, subjectData,{
+      headers: this.getAuthHeaders()
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -87,7 +111,9 @@ export class SubjectService {
    * Supprimer une matière
    */
   deleteSubject(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`,{
+      headers: this.getAuthHeaders()
+    }).pipe(
       catchError(this.handleError)
     );
   }
@@ -96,6 +122,7 @@ export class SubjectService {
    * Rechercher des matières par nom ou code
    */
   searchSubjects(query: string): Observable<Subject[]> {
+    
     return this.getAllSubjects().pipe(
       map(subjects => subjects.filter(subject =>
         subject.name.toLowerCase().includes(query.toLowerCase()) ||

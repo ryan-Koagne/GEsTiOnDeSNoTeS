@@ -411,32 +411,90 @@
       </div>
     </div>
 
-    <!-- Enhanced Placeholder Tabs -->
-    <div *ngIf="activeTab === 'admins' && !loading" class="placeholder-content animate-slide-up">
-      <div class="placeholder-card shadow-hover">
-        <div class="placeholder-icon">
+    <!-- Admins Management Tab -->
+    <div *ngIf="activeTab === 'admins' && !loading" class="crud-content animate-slide-up">
+      <div class="crud-header">
+        <div class="crud-title">
+          <h2><i class="bi bi-people-fill"></i> Gestion des Administrateurs</h2>
+          <p>Gérez les comptes administrateurs et leurs permissions</p>
+        </div>
+        <div class="crud-actions">
+          <button class="btn-primary-enhanced" (click)="openAdminModal('create')">
+            <i class="bi bi-plus-circle"></i>
+            Ajouter un Administrateur
+          </button>
+        </div>
+      </div>
+
+      <div class="crud-filters">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            placeholder="Rechercher un administrateur..." 
+            [(ngModel)]="adminSearchTerm"
+            class="search-input">
+        </div>
+      </div>
+
+      <div class="crud-table-container" *ngIf="!adminsLoading">
+        <table class="crud-table">
+          <thead>
+            <tr>
+              <th>Nom Complet</th>
+              <th>Email</th>
+              <th>Nom d'utilisateur</th>
+              <th>Téléphone</th>
+              <th>Date de création</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let admin of filteredAdmins; trackBy: trackByAdminId">
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    <i class="bi bi-person-gear"></i>
+                  </div>
+                  <div class="user-details">
+                    <div class="user-name">{{admin.full_name}}</div>
+                    <div class="user-meta">Administrateur</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{admin.email}}</td>
+              <td>
+                <span class="username-badge">{{admin.username}}</span>
+              </td>
+              <td>{{admin.phone || 'Non renseigné'}}</td>
+              <td>{{admin.created_at | date:'dd/MM/yyyy'}}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action btn-view" (click)="openAdminModal('view', admin)" title="Voir">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn-action btn-edit" (click)="openAdminModal('edit', admin)" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn-action btn-delete" (click)="deleteAdmin(admin)" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredAdmins.length === 0" class="empty-state">
           <i class="bi bi-people-fill"></i>
+          <h3>Aucun administrateur trouvé</h3>
+          <p>Aucun administrateur ne correspond à vos critères de recherche</p>
         </div>
-        <h2>Gestion des Administrateurs</h2>
-        <p>Interface complète de gestion des comptes administrateurs avec permissions et rôles.</p>
-        <div class="placeholder-features">
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Création et modification des comptes</span>
-          </div>
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Gestion des permissions</span>
-          </div>
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Historique des actions</span>
-          </div>
-        </div>
-        <button class="btn-primary-enhanced" (click)="handleAdminAction('create')">
-          <i class="bi bi-plus-circle"></i>
-          Ajouter un Administrateur
-        </button>
+      </div>
+
+      <div *ngIf="adminsLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des administrateurs...</p>
       </div>
     </div>
 
@@ -621,31 +679,88 @@
       </div>
     </div>
 
-    <div *ngIf="activeTab === 'classes' && !loading" class="placeholder-content animate-slide-up">
-      <div class="placeholder-card shadow-hover">
-        <div class="placeholder-icon">
+    <!-- Classes Management Tab -->
+    <div *ngIf="activeTab === 'classes' && !loading" class="crud-content animate-slide-up">
+      <div class="crud-header">
+        <div class="crud-title">
+          <h2><i class="bi bi-building"></i> Gestion des Classes</h2>
+          <p>Gérez les classes et leurs niveaux</p>
+        </div>
+        <div class="crud-actions">
+          <button class="btn-primary-enhanced" (click)="openClassModal('create')">
+            <i class="bi bi-plus-circle"></i>
+            Ajouter une Classe
+          </button>
+        </div>
+      </div>
+
+      <div class="crud-filters">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            placeholder="Rechercher une classe..." 
+            [(ngModel)]="classSearchTerm"
+            class="search-input">
+        </div>
+      </div>
+
+      <div class="crud-table-container" *ngIf="!classesLoading">
+        <table class="crud-table">
+          <thead>
+            <tr>
+              <th>Nom de la Classe</th>
+              <th>Niveau</th>
+              <th>Année Académique</th>
+              <th>Nombre d'Étudiants</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let class of filteredClasses; trackBy: trackByClassId">
+              <td>
+                <div class="class-info">
+                  <div class="class-icon">
+                    <i class="bi bi-building"></i>
+                  </div>
+                  <div class="class-details">
+                    <div class="class-name">{{class.name}}</div>
+                    <div class="class-meta">Classe</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="level-badge">{{class.level}}</span>
+              </td>
+              <td>{{class.academic_year}}</td>
+              <td>{{class.student_count || 0}}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action btn-view" (click)="openClassModal('view', class)" title="Voir">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn-action btn-edit" (click)="openClassModal('edit', class)" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn-action btn-delete" (click)="deleteClass(class)" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredClasses.length === 0" class="empty-state">
           <i class="bi bi-building"></i>
+          <h3>Aucune classe trouvée</h3>
+          <p>Aucune classe ne correspond à vos critères de recherche</p>
         </div>
-        <h2>Gestion des Classes</h2>
-        <p>Organisation et administration des classes, niveaux et groupes d'étudiants.</p>
-        <div class="placeholder-features">
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Création et organisation des classes</span>
-          </div>
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Affectation des étudiants</span>
-          </div>
-          <div class="feature-item">
-            <i class="bi bi-check-circle"></i>
-            <span>Gestion des capacités</span>
-          </div>
-        </div>
-        <button class="btn-warning-enhanced" (click)="handleClassAction('create')">
-          <i class="bi bi-plus-circle"></i>
-          Ajouter une Classe
-        </button>
+      </div>
+
+      <div *ngIf="classesLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des classes...</p>
       </div>
     </div>
 
@@ -679,7 +794,253 @@
   </div>
 </div>
 
+<!-- Admin Modal -->
+<div class="modal-overlay" *ngIf="adminModal.isOpen" (click)="closeAdminModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="bi bi-people-fill"></i>
+        <span *ngIf="adminModal.mode === 'create'">Ajouter un Administrateur</span>
+        <span *ngIf="adminModal.mode === 'edit'">Modifier l'Administrateur</span>
+        <span *ngIf="adminModal.mode === 'view'">Détails de l'Administrateur</span>
+      </h3>
+      <button class="modal-close" (click)="closeAdminModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
 
+    <div class="modal-body">
+      <form [formGroup]="adminForm" (ngSubmit)="saveAdmin()" *ngIf="adminModal.mode !== 'view'">
+        <div class="form-grid">
+          <div class="form-group" *ngIf="adminModal.mode === 'create'">
+            <label for="admin-username">Nom d'utilisateur *</label>
+            <input 
+              type="text" 
+              id="admin-username"
+              formControlName="username"
+              class="form-control"
+              [class.error]="getFieldError(adminForm, 'username')">
+            <div class="error-message" *ngIf="getFieldError(adminForm, 'username')">
+              {{getFieldError(adminForm, 'username')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="adminModal.mode === 'create'">
+            <label for="admin-email">Email *</label>
+            <input 
+              type="email" 
+              id="admin-email"
+              formControlName="email"
+              class="form-control"
+              [class.error]="getFieldError(adminForm, 'email')">
+            <div class="error-message" *ngIf="getFieldError(adminForm, 'email')">
+              {{getFieldError(adminForm, 'email')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="adminModal.mode === 'create'">
+            <label for="admin-password">Mot de passe *</label>
+            <input 
+              type="password" 
+              id="admin-password"
+              formControlName="password"
+              class="form-control"
+              [class.error]="getFieldError(adminForm, 'password')">
+            <div class="error-message" *ngIf="getFieldError(adminForm, 'password')">
+              {{getFieldError(adminForm, 'password')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-first-name">Prénom *</label>
+            <input 
+              type="text" 
+              id="admin-first-name"
+              formControlName="first_name"
+              class="form-control"
+              [class.error]="getFieldError(adminForm, 'first_name')">
+            <div class="error-message" *ngIf="getFieldError(adminForm, 'first_name')">
+              {{getFieldError(adminForm, 'first_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-last-name">Nom *</label>
+            <input 
+              type="text" 
+              id="admin-last-name"
+              formControlName="last_name"
+              class="form-control"
+              [class.error]="getFieldError(adminForm, 'last_name')">
+            <div class="error-message" *ngIf="getFieldError(adminForm, 'last_name')">
+              {{getFieldError(adminForm, 'last_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="admin-phone">Téléphone</label>
+            <input 
+              type="tel" 
+              id="admin-phone"
+              formControlName="phone"
+              class="form-control">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="admin-address">Adresse</label>
+            <textarea 
+              id="admin-address"
+              formControlName="address"
+              class="form-control"
+              rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeAdminModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="adminForm.invalid">
+            <i class="bi bi-check"></i>
+            {{adminModal.mode === 'create' ? 'Créer' : 'Modifier'}}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="adminModal.mode === 'view' && adminModal.data" class="view-content">
+        <div class="view-grid">
+          <div class="view-item">
+            <label>Nom complet</label>
+            <span>{{adminModal.data.full_name}}</span>
+          </div>
+          <div class="view-item">
+            <label>Email</label>
+            <span>{{adminModal.data.email}}</span>
+          </div>
+          <div class="view-item">
+            <label>Nom d'utilisateur</label>
+            <span>{{adminModal.data.username}}</span>
+          </div>
+          <div class="view-item">
+            <label>Téléphone</label>
+            <span>{{adminModal.data.phone || 'Non renseigné'}}</span>
+          </div>
+          <div class="view-item">
+            <label>Date de création</label>
+            <span>{{adminModal.data.created_at | date:'dd/MM/yyyy HH:mm'}}</span>
+          </div>
+          <div class="view-item full-width">
+            <label>Adresse</label>
+            <span>{{adminModal.data.address || 'Non renseigné'}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Class Modal -->
+<div class="modal-overlay" *ngIf="classModal.isOpen" (click)="closeClassModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="bi bi-building"></i>
+        <span *ngIf="classModal.mode === 'create'">Ajouter une Classe</span>
+        <span *ngIf="classModal.mode === 'edit'">Modifier la Classe</span>
+        <span *ngIf="classModal.mode === 'view'">Détails de la Classe</span>
+      </h3>
+      <button class="modal-close" (click)="closeClassModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="classForm" (ngSubmit)="saveClass()" *ngIf="classModal.mode !== 'view'">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="class-name">Nom de la classe *</label>
+            <input 
+              type="text" 
+              id="class-name"
+              formControlName="name"
+              class="form-control"
+              [class.error]="getFieldError(classForm, 'name')"
+              placeholder="Ex: L1 Informatique A">
+            <div class="error-message" *ngIf="getFieldError(classForm, 'name')">
+              {{getFieldError(classForm, 'name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="class-level">Niveau *</label>
+            <select 
+              id="class-level"
+              formControlName="level"
+              class="form-control"
+              [class.error]="getFieldError(classForm, 'level')">
+              <option value="">Sélectionner un niveau</option>
+              <option value="L1">Licence 1</option>
+              <option value="L2">Licence 2</option>
+              <option value="L3">Licence 3</option>
+              <option value="M1">Master 1</option>
+              <option value="M2">Master 2</option>
+            </select>
+            <div class="error-message" *ngIf="getFieldError(classForm, 'level')">
+              {{getFieldError(classForm, 'level')}}
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="class-academic-year">Année académique *</label>
+            <input 
+              type="text" 
+              id="class-academic-year"
+              formControlName="academic_year"
+              class="form-control"
+              [class.error]="getFieldError(classForm, 'academic_year')"
+              placeholder="Ex: 2024-2025">
+            <div class="error-message" *ngIf="getFieldError(classForm, 'academic_year')">
+              {{getFieldError(classForm, 'academic_year')}}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeClassModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="classForm.invalid">
+            <i class="bi bi-check"></i>
+            {{classModal.mode === 'create' ? 'Créer' : 'Modifier'}}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="classModal.mode === 'view' && classModal.data" class="view-content">
+        <div class="view-grid">
+          <div class="view-item">
+            <label>Nom de la classe</label>
+            <span>{{classModal.data.name}}</span>
+          </div>
+          <div class="view-item">
+            <label>Niveau</label>
+            <span class="level-badge">{{classModal.data.level}}</span>
+          </div>
+          <div class="view-item">
+            <label>Année académique</label>
+            <span>{{classModal.data.academic_year}}</span>
+          </div>
+          <div class="view-item">
+            <label>Nombre d'étudiants</label>
+            <span>{{classModal.data.student_count || 0}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Teacher Modal -->
 <div class="modal-overlay" *ngIf="teacherModal.isOpen" (click)="closeTeacherModal()">

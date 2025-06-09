@@ -1080,12 +1080,14 @@
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
             
-            .user-info {
+            .user-info,
+            .class-info {
               display: flex;
               align-items: center;
               gap: 12px;
               
-              .user-avatar {
+              .user-avatar,
+              .class-icon {
                 width: 40px;
                 height: 40px;
                 background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -1100,14 +1102,17 @@
                 }
               }
               
-              .user-details {
-                .user-name {
+              .user-details,
+              .class-details {
+                .user-name,
+                .class-name {
                   font-weight: 600;
                   color: #1e293b;
                   margin-bottom: 2px;
                 }
                 
-                .user-meta {
+                .user-meta,
+                .class-meta {
                   font-size: 0.875rem;
                   color: #64748b;
                 }
@@ -1140,6 +1145,25 @@
               font-size: 0.875rem;
               font-weight: 600;
               font-family: monospace;
+            }
+
+            .username-badge {
+              background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 0.875rem;
+              font-weight: 600;
+              font-family: monospace;
+            }
+
+            .level-badge {
+              background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 0.875rem;
+              font-weight: 600;
             }
             
             .action-buttons {
@@ -1388,6 +1412,15 @@
               font-size: 0.875rem;
               font-weight: 600;
               font-family: monospace;
+            }
+
+            .level-badge {
+              background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 0.875rem;
+              font-weight: 600;
             }
             
             .subjects-view {
@@ -1678,6 +1711,7 @@
     padding: 20px;
   }
 }
+
 .form-control[multiple] {
   min-height: 120px;
   padding: 8px;
