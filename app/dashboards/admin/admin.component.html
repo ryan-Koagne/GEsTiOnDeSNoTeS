@@ -1,0 +1,1040 @@
+<div class="admin-dashboard-container">
+  <div class="admin-dashboard glass-effect shadow-soft">
+    <!-- Enhanced Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="header-title">
+          <div class="title-icon">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <div class="title-text">
+            <h1 class="main-title gradient-text">Dashboard Administrateur</h1>
+            <p class="subtitle">Tableau de bord complet de gestion</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-refresh" (click)="refreshData()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.spinning]="loading"></i>
+            <span>Actualiser</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Navigation Tabs -->
+    <div class="nav-container">
+      <nav class="nav-tabs-enhanced">
+        <button 
+          *ngFor="let tab of tabs; trackBy: trackByTabId"
+          class="nav-tab" 
+          [class.active]="activeTab === tab.id"
+          (click)="setActiveTab(tab.id)">
+          <div class="tab-icon">
+            <i class="{{tab.icon}}"></i>
+          </div>
+          <span class="tab-label">{{tab.label}}</span>
+          <div class="tab-indicator"></div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Enhanced Loading State -->
+    <div *ngIf="loading" class="loading-container animate-fade-in">
+      <div class="loading-content">
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <h3 class="loading-title">Chargement des données</h3>
+        <p class="loading-subtitle">Veuillez patienter pendant que nous récupérons les informations...</p>
+      </div>
+    </div>
+
+    <!-- Enhanced Error State -->
+    <div *ngIf="error && !loading" class="error-container animate-slide-up">
+      <div class="error-content">
+        <div class="error-icon">
+          <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h3 class="error-title">Erreur de chargement</h3>
+        <p class="error-message">{{error}}</p>
+        <button class="btn-retry" (click)="refreshData()">
+          <i class="bi bi-arrow-clockwise"></i>
+          Réessayer
+        </button>
+      </div>
+    </div>
+
+    <!-- Enhanced Statistics Tab -->
+    <div *ngIf="activeTab === 'statistics' && adminDashboardData && !loading" class="statistics-content animate-slide-up">
+      
+      <!-- Enhanced Quick Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card stat-card-primary shadow-hover" 
+             style="animation-delay: 0.1s">
+          <div class="stat-card-content">
+            <div class="stat-info">
+              <div class="stat-label">Total Étudiants</div>
+              <div class="stat-value">{{formatNumber(adminDashboardData.general_statistics.total_students)}}</div>
+              <div class="stat-trend">
+                <i class="bi bi-trending-up"></i>
+                <span>+12% ce mois</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i class="bi bi-mortarboard"></i>
+            </div>
+          </div>
+          <div class="stat-card-footer">
+            <div class="progress-ring">
+              <svg class="progress-ring-svg" width="60" height="60">
+                <circle class="progress-ring-circle-bg" cx="30" cy="30" r="25"></circle>
+                <circle class="progress-ring-circle" cx="30" cy="30" r="25" [style.stroke-dasharray]="getCircleProgress(85)"></circle>
+              </svg>
+              <span class="progress-text">85%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card-success shadow-hover" 
+             style="animation-delay: 0.2s">
+          <div class="stat-card-content">
+            <div class="stat-info">
+              <div class="stat-label">Total Enseignants</div>
+              <div class="stat-value">{{formatNumber(adminDashboardData.general_statistics.total_teachers)}}</div>
+              <div class="stat-trend">
+                <i class="bi bi-trending-up"></i>
+                <span>+8% ce mois</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i class="bi bi-person-badge"></i>
+            </div>
+          </div>
+          <div class="stat-card-footer">
+            <div class="progress-ring">
+              <svg class="progress-ring-svg" width="60" height="60">
+                <circle class="progress-ring-circle-bg" cx="30" cy="30" r="25"></circle>
+                <circle class="progress-ring-circle" cx="30" cy="30" r="25" [style.stroke-dasharray]="getCircleProgress(92)"></circle>
+              </svg>
+              <span class="progress-text">92%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card-info shadow-hover" 
+             style="animation-delay: 0.3s">
+          <div class="stat-card-content">
+            <div class="stat-info">
+              <div class="stat-label">Total Classes</div>
+              <div class="stat-value">{{formatNumber(adminDashboardData.general_statistics.total_classes)}}</div>
+              <div class="stat-trend">
+                <i class="bi bi-trending-up"></i>
+                <span>+5% ce mois</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i class="bi bi-building"></i>
+            </div>
+          </div>
+          <div class="stat-card-footer">
+            <div class="progress-ring">
+              <svg class="progress-ring-svg" width="60" height="60">
+                <circle class="progress-ring-circle-bg" cx="30" cy="30" r="25"></circle>
+                <circle class="progress-ring-circle" cx="30" cy="30" r="25" [style.stroke-dasharray]="getCircleProgress(78)"></circle>
+              </svg>
+              <span class="progress-text">78%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card-warning shadow-hover" 
+             style="animation-delay: 0.4s">
+          <div class="stat-card-content">
+            <div class="stat-info">
+              <div class="stat-label">Total Notes</div>
+              <div class="stat-value">{{formatNumber(adminDashboardData.general_statistics.total_grades)}}</div>
+              <div class="stat-trend">
+                <i class="bi bi-trending-up"></i>
+                <span>+15% ce mois</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i class="bi bi-clipboard-data"></i>
+            </div>
+          </div>
+          <div class="stat-card-footer">
+            <div class="progress-ring">
+              <svg class="progress-ring-svg" width="60" height="60">
+                <circle class="progress-ring-circle-bg" cx="30" cy="30" r="25"></circle>
+                <circle class="progress-ring-circle" cx="30" cy="30" r="25" [style.stroke-dasharray]="getCircleProgress(95)"></circle>
+              </svg>
+              <span class="progress-text">95%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Secondary Stats -->
+      <div class="secondary-stats">
+        <div class="secondary-stat-card shadow-hover">
+          <div class="secondary-stat-icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="secondary-stat-content">
+            <h4>Matières Enseignées</h4>
+            <div class="secondary-stat-value">{{formatNumber(adminDashboardData.general_statistics.total_subjects)}}</div>
+          </div>
+        </div>
+
+        <div class="secondary-stat-card shadow-hover">
+          <div class="secondary-stat-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="secondary-stat-content">
+            <h4>Moyenne Étudiants/Classe</h4>
+            <div class="secondary-stat-value">
+              {{adminDashboardData.general_statistics.total_classes > 0 ? 
+                formatNumber(Math.round(adminDashboardData.general_statistics.total_students / adminDashboardData.general_statistics.total_classes)) : 0}}
+            </div>
+          </div>
+        </div>
+
+        <div class="secondary-stat-card shadow-hover">
+          <div class="secondary-stat-icon">
+            <i class="bi bi-calculator"></i>
+          </div>
+          <div class="secondary-stat-content">
+            <h4>Moyenne Notes/Étudiant</h4>
+            <div class="secondary-stat-value">
+              {{adminDashboardData.general_statistics.total_students > 0 ? 
+                formatNumber(Math.round(adminDashboardData.general_statistics.total_grades / adminDashboardData.general_statistics.total_students)) : 0}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Data Tables Section -->
+      <div class="data-section">
+        <div class="data-table-container">
+          <div class="data-table-card shadow-hover">
+            <div class="card-header-enhanced">
+              <div class="header-title">
+                <i class="bi bi-bar-chart"></i>
+                <h3>Statistiques par Classe</h3>
+              </div>
+              <div class="header-actions">
+                <button class="btn-action">
+                  <i class="bi bi-download"></i>
+                  Exporter
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="enhanced-table">
+                <thead>
+                  <tr>
+                    <th>Classe</th>
+                    <th>Étudiants</th>
+                    <th>Notes</th>
+                    <th>Moyenne</th>
+                    <th>Répartition</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let classStats of adminDashboardData.classes_statistics; trackBy: trackByClassName">
+                    <td>
+                      <div class="class-badge">{{classStats.class_name}}</div>
+                    </td>
+                    <td>
+                      <div class="stat-number">{{formatNumber(classStats.student_count)}}</div>
+                    </td>
+                    <td>
+                      <div class="stat-number">{{formatNumber(classStats.grades_count)}}</div>
+                    </td>
+                    <td>
+                      <div class="stat-number">
+                        {{classStats.student_count > 0 ? 
+                          formatNumber(Math.round((classStats.grades_count / classStats.student_count) * 100) / 100) : 0}}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="progress-container">
+                        <div class="progress-bar-enhanced">
+                          <div class="progress-fill" 
+                               [style.width.%]="calculatePercentage(classStats.student_count, adminDashboardData.general_statistics.total_students)">
+                          </div>
+                        </div>
+                        <span class="progress-label">
+                          {{calculatePercentage(classStats.student_count, adminDashboardData.general_statistics.total_students)}}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-card-container">
+          <div class="summary-card shadow-hover">
+            <div class="card-header-enhanced">
+              <div class="header-title">
+                <i class="bi bi-pie-chart"></i>
+                <h3>Répartition Générale</h3>
+              </div>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-icon summary-icon-primary">
+                  <i class="bi bi-mortarboard"></i>
+                </div>
+                <div class="summary-content">
+                  <div class="summary-label">Étudiants</div>
+                  <div class="summary-value">{{formatNumber(adminDashboardData.general_statistics.total_students)}}</div>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon summary-icon-success">
+                  <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="summary-content">
+                  <div class="summary-label">Enseignants</div>
+                  <div class="summary-value">{{formatNumber(adminDashboardData.general_statistics.total_teachers)}}</div>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon summary-icon-info">
+                  <i class="bi bi-building"></i>
+                </div>
+                <div class="summary-content">
+                  <div class="summary-label">Classes</div>
+                  <div class="summary-value">{{formatNumber(adminDashboardData.general_statistics.total_classes)}}</div>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon summary-icon-warning">
+                  <i class="bi bi-book"></i>
+                </div>
+                <div class="summary-content">
+                  <div class="summary-label">Matières</div>
+                  <div class="summary-value">{{formatNumber(adminDashboardData.general_statistics.total_subjects)}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Recent Activities -->
+      <div class="activities-section">
+        <div class="activity-card shadow-hover">
+          <div class="card-header-enhanced">
+            <div class="header-title">
+              <i class="bi bi-person-plus"></i>
+              <h3>Nouveaux Étudiants</h3>
+            </div>
+            <div class="header-actions">
+              <button class="btn-action">
+                <i class="bi bi-eye"></i>
+                Voir tout
+              </button>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div *ngIf="adminDashboardData.recent_students && adminDashboardData.recent_students.length > 0; else noStudents">
+              <div class="activity-item" *ngFor="let student of adminDashboardData.recent_students.slice(0, 5); trackBy: trackByStudentId">
+                <div class="activity-avatar">
+                  <i class="bi bi-person"></i>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-name">{{student.full_name}}</div>
+                  <div class="activity-meta">Matricule: {{student.matricule}}</div>
+                </div>
+                <div class="activity-time">
+                  <i class="bi bi-clock"></i>
+                  <span>Récent</span>
+                </div>
+              </div>
+            </div>
+            <ng-template #noStudents>
+              <div class="empty-state">
+                <i class="bi bi-person-plus"></i>
+                <p>Aucun nouvel étudiant récent</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="activity-card shadow-hover">
+          <div class="card-header-enhanced">
+            <div class="header-title">
+              <i class="bi bi-person-badge"></i>
+              <h3>Nouveaux Enseignants</h3>
+            </div>
+            <div class="header-actions">
+              <button class="btn-action">
+                <i class="bi bi-eye"></i>
+                Voir tout
+              </button>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div *ngIf="adminDashboardData.recent_teachers && adminDashboardData.recent_teachers.length > 0; else noTeachers">
+              <div class="activity-item" *ngFor="let teacher of adminDashboardData.recent_teachers.slice(0, 5); trackBy: trackByTeacherId">
+                <div class="activity-avatar">
+                  <i class="bi bi-person-badge"></i>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-name">{{teacher.full_name}}</div>
+                  <div class="activity-meta">Enseignant</div>
+                </div>
+                <div class="activity-time">
+                  <i class="bi bi-clock"></i>
+                  <span>Récent</span>
+                </div>
+              </div>
+            </div>
+            <ng-template #noTeachers>
+              <div class="empty-state">
+                <i class="bi bi-person-badge"></i>
+                <p>Aucun nouvel enseignant récent</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Placeholder Tabs -->
+    <div *ngIf="activeTab === 'admins' && !loading" class="placeholder-content animate-slide-up">
+      <div class="placeholder-card shadow-hover">
+        <div class="placeholder-icon">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <h2>Gestion des Administrateurs</h2>
+        <p>Interface complète de gestion des comptes administrateurs avec permissions et rôles.</p>
+        <div class="placeholder-features">
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Création et modification des comptes</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Gestion des permissions</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Historique des actions</span>
+          </div>
+        </div>
+        <button class="btn-primary-enhanced" (click)="handleAdminAction('create')">
+          <i class="bi bi-plus-circle"></i>
+          Ajouter un Administrateur
+        </button>
+      </div>
+    </div>
+
+    <!-- Teachers Management Tab -->
+    <div *ngIf="activeTab === 'teachers' && !loading" class="crud-content animate-slide-up">
+      <div class="crud-header">
+        <div class="crud-title">
+          <h2><i class="bi bi-person-badge"></i> Gestion des Enseignants</h2>
+          <p>Gérez les enseignants et leurs affectations</p>
+        </div>
+        <div class="crud-actions">
+          <button class="btn-primary-enhanced" (click)="openTeacherModal('create')">
+            <i class="bi bi-plus-circle"></i>
+            Ajouter un Enseignant
+          </button>
+        </div>
+      </div>
+
+      <div class="crud-filters">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            placeholder="Rechercher un enseignant..." 
+            [(ngModel)]="teacherSearchTerm"
+            class="search-input">
+        </div>
+      </div>
+
+      <div class="crud-table-container" *ngIf="!teachersLoading">
+        <table class="crud-table">
+          <thead>
+            <tr>
+              <th>Nom Complet</th>
+              <th>Matières</th>
+              <th>Téléphone</th>
+              <th>Date d'embauche</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let teacher of filteredTeachers; trackBy: trackByTeacherId">
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    <i class="bi bi-person-badge"></i>
+                  </div>
+                  <div class="user-details">
+                    <div class="user-name">{{teacher.full_name}}</div>
+                    <div class="user-meta">Enseignant</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="subjects-list">
+                  <span *ngFor="let subject of teacher.subjects; let last = last" class="subject-tag">
+                    {{subject.name}}<span *ngIf="!last">, </span>
+                  </span>
+                  <span *ngIf="teacher.subjects.length === 0" class="no-subjects">Aucune matière</span>
+                </div>
+              </td>
+              <td>{{teacher.phone || 'Non renseigné'}}</td>
+              <td>{{teacher.hire_date | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action btn-view" (click)="openTeacherModal('view', teacher)" title="Voir">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn-action btn-edit" (click)="openTeacherModal('edit', teacher)" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn-action btn-delete" (click)="deleteTeacher(teacher)" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredTeachers.length === 0" class="empty-state">
+          <i class="bi bi-person-badge"></i>
+          <h3>Aucun enseignant trouvé</h3>
+          <p>Aucun enseignant ne correspond à vos critères de recherche</p>
+        </div>
+      </div>
+
+      <div *ngIf="teachersLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des enseignants...</p>
+      </div>
+    </div>
+
+    <!-- Students Management Tab -->
+    <div *ngIf="activeTab === 'students' && !loading" class="crud-content animate-slide-up">
+      <div class="crud-header">
+        <div class="crud-title">
+          <h2><i class="bi bi-mortarboard"></i> Gestion des Étudiants</h2>
+          <p>Gérez les étudiants et leurs inscriptions</p>
+        </div>
+        <div class="crud-actions">
+          <button class="btn-primary-enhanced" (click)="openStudentModal('create')">
+            <i class="bi bi-plus-circle"></i>
+            Ajouter un Étudiant
+          </button>
+        </div>
+      </div>
+
+      <div class="crud-filters">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input 
+            type="text" 
+            placeholder="Rechercher un étudiant..." 
+            [(ngModel)]="studentSearchTerm"
+            class="search-input">
+        </div>
+        <div class="filter-box">
+          <select [(ngModel)]="selectedClassFilter" class="filter-select">
+            <option value="">Toutes les classes</option>
+            <option *ngFor="let class of classes" [value]="class.id">{{class.name}}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="crud-table-container" *ngIf="!studentsLoading">
+        <table class="crud-table">
+          <thead>
+            <tr>
+              <th>Nom Complet</th>
+              <th>Matricule</th>
+              <th>Classe</th>
+              <th>Téléphone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of filteredStudents; trackBy: trackByStudentId">
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    <i class="bi bi-person"></i>
+                  </div>
+                  <div class="user-details">
+                    <div class="user-name">{{student.full_name}}</div>
+                    <div class="user-meta">Étudiant</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="matricule-badge">{{student.matricule}}</span>
+              </td>
+              <td>{{getClassNameById(student.class_id)}}</td>
+              <td>{{student.phone || 'Non renseigné'}}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action btn-view" (click)="openStudentModal('view', student)" title="Voir">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="btn-action btn-edit" (click)="openStudentModal('edit', student)" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn-action btn-delete" (click)="deleteStudent(student)" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredStudents.length === 0" class="empty-state">
+          <i class="bi bi-mortarboard"></i>
+          <h3>Aucun étudiant trouvé</h3>
+          <p>Aucun étudiant ne correspond à vos critères de recherche</p>
+        </div>
+      </div>
+
+      <div *ngIf="studentsLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des étudiants...</p>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'classes' && !loading" class="placeholder-content animate-slide-up">
+      <div class="placeholder-card shadow-hover">
+        <div class="placeholder-icon">
+          <i class="bi bi-building"></i>
+        </div>
+        <h2>Gestion des Classes</h2>
+        <p>Organisation et administration des classes, niveaux et groupes d'étudiants.</p>
+        <div class="placeholder-features">
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Création et organisation des classes</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Affectation des étudiants</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Gestion des capacités</span>
+          </div>
+        </div>
+        <button class="btn-warning-enhanced" (click)="handleClassAction('create')">
+          <i class="bi bi-plus-circle"></i>
+          Ajouter une Classe
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'schedules' && !loading" class="placeholder-content animate-slide-up">
+      <div class="placeholder-card shadow-hover">
+        <div class="placeholder-icon">
+          <i class="bi bi-calendar3"></i>
+        </div>
+        <h2>Gestion des Emplois du Temps</h2>
+        <p>Planification et organisation des emplois du temps pour toutes les classes et enseignants.</p>
+        <div class="placeholder-features">
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Planification automatisée</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Gestion des conflits</span>
+          </div>
+          <div class="feature-item">
+            <i class="bi bi-check-circle"></i>
+            <span>Notifications et alertes</span>
+          </div>
+        </div>
+        <button class="btn-secondary-enhanced" (click)="handleScheduleAction('create')">
+          <i class="bi bi-plus-circle"></i>
+          Créer un Emploi du Temps
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Teacher Modal -->
+<div class="modal-overlay" *ngIf="teacherModal.isOpen" (click)="closeTeacherModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="bi bi-person-badge"></i>
+        <span *ngIf="teacherModal.mode === 'create'">Ajouter un Enseignant</span>
+        <span *ngIf="teacherModal.mode === 'edit'">Modifier l'Enseignant</span>
+        <span *ngIf="teacherModal.mode === 'view'">Détails de l'Enseignant</span>
+      </h3>
+      <button class="modal-close" (click)="closeTeacherModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="teacherForm" (ngSubmit)="saveTeacher()" *ngIf="teacherModal.mode !== 'view'">
+        <div class="form-grid">
+          <div class="form-group" *ngIf="teacherModal.mode === 'create'">
+            <label for="teacher-username">Nom d'utilisateur *</label>
+            <input 
+              type="text" 
+              id="teacher-username"
+              formControlName="username"
+              class="form-control"
+              [class.error]="getFieldError(teacherForm, 'username')">
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'username')">
+              {{getFieldError(teacherForm, 'username')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="teacherModal.mode === 'create'">
+            <label for="teacher-email">Email *</label>
+            <input 
+              type="email" 
+              id="teacher-email"
+              formControlName="email"
+              class="form-control"
+              [class.error]="getFieldError(teacherForm, 'email')">
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'email')">
+              {{getFieldError(teacherForm, 'email')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="teacherModal.mode === 'create'">
+            <label for="teacher-password">Mot de passe *</label>
+            <input 
+              type="password" 
+              id="teacher-password"
+              formControlName="password"
+              class="form-control"
+              [class.error]="getFieldError(teacherForm, 'password')">
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'password')">
+              {{getFieldError(teacherForm, 'password')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="teacher-first-name">Prénom *</label>
+            <input 
+              type="text" 
+              id="teacher-first-name"
+              formControlName="first_name"
+              class="form-control"
+              [class.error]="getFieldError(teacherForm, 'first_name')">
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'first_name')">
+              {{getFieldError(teacherForm, 'first_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="teacher-last-name">Nom *</label>
+            <input 
+              type="text" 
+              id="teacher-last-name"
+              formControlName="last_name"
+              class="form-control"
+              [class.error]="getFieldError(teacherForm, 'last_name')">
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'last_name')">
+              {{getFieldError(teacherForm, 'last_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="teacher-phone">Téléphone</label>
+            <input 
+              type="tel" 
+              id="teacher-phone"
+              formControlName="phone"
+              class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="teacher-hire-date">Date d'embauche</label>
+            <input 
+              type="date" 
+              id="teacher-hire-date"
+              formControlName="hire_date"
+              class="form-control">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="teacher-subjects">Matières enseignées *</label>
+            <select 
+              id="teacher-subjects"
+              formControlName="subject_ids"
+              class="form-control"
+              multiple
+              size="4"
+            >
+              <option *ngFor="let subject of subjects" [value]="subject.id">
+                {{subject.name}} ({{subject.code}})
+              </option>
+            </select>
+            <div class="error-message" *ngIf="getFieldError(teacherForm, 'subject_ids')">
+              {{getFieldError(teacherForm, 'subject_ids')}}
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="teacher-address">Adresse</label>
+            <textarea 
+              id="teacher-address"
+              formControlName="address"
+              class="form-control"
+              rows="3"></textarea>
+          </div>
+          
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeTeacherModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="teacherForm.invalid">
+            <i class="bi bi-check"></i>
+            {{teacherModal.mode === 'create' ? 'Créer' : 'Modifier'}}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="teacherModal.mode === 'view' && teacherModal.data" class="view-content">
+        <div class="view-grid">
+          <div class="view-item">
+            <label>Nom complet</label>
+            <span>{{teacherModal.data.full_name}}</span>
+          </div>
+          <div class="view-item">
+            <label>Téléphone</label>
+            <span>{{teacherModal.data.phone || 'Non renseigné'}}</span>
+          </div>
+          <div class="view-item">
+            <label>Date d'embauche</label>
+            <span>{{teacherModal.data.hire_date | date:'dd/MM/yyyy'}}</span>
+          </div>
+          <div class="view-item full-width">
+            <label>Adresse</label>
+            <span>{{teacherModal.data.address || 'Non renseigné'}}</span>
+          </div>
+          <div class="view-item full-width">
+            <label>Matières enseignées</label>
+            <div class="subjects-view">
+              <span *ngFor="let subject of teacherModal.data.subjects" class="subject-tag">
+                {{subject.name}}
+              </span>
+              <span *ngIf="teacherModal.data.subjects.length === 0">Aucune matière assignée</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Student Modal -->
+<div class="modal-overlay" *ngIf="studentModal.isOpen" (click)="closeStudentModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="bi bi-mortarboard"></i>
+        <span *ngIf="studentModal.mode === 'create'">Ajouter un Étudiant</span>
+        <span *ngIf="studentModal.mode === 'edit'">Modifier l'Étudiant</span>
+        <span *ngIf="studentModal.mode === 'view'">Détails de l'Étudiant</span>
+      </h3>
+      <button class="modal-close" (click)="closeStudentModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="studentForm" (ngSubmit)="saveStudent()" *ngIf="studentModal.mode !== 'view'">
+        <div class="form-grid">
+          <div class="form-group" *ngIf="studentModal.mode === 'create'">
+            <label for="student-username">Nom d'utilisateur *</label>
+            <input 
+              type="text" 
+              id="student-username"
+              formControlName="username"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'username')">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'username')">
+              {{getFieldError(studentForm, 'username')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="studentModal.mode === 'create'">
+            <label for="student-email">Email *</label>
+            <input 
+              type="email" 
+              id="student-email"
+              formControlName="email"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'email')">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'email')">
+              {{getFieldError(studentForm, 'email')}}
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="studentModal.mode === 'create'">
+            <label for="student-password">Mot de passe *</label>
+            <input 
+              type="password" 
+              id="student-password"
+              formControlName="password"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'password')">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'password')">
+              {{getFieldError(studentForm, 'password')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-matricule">Matricule *</label>
+            <input 
+              type="text" 
+              id="student-matricule"
+              formControlName="matricule"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'matricule')"
+              placeholder="Ex: ABC1234">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'matricule')">
+              {{getFieldError(studentForm, 'matricule')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-first-name">Prénom *</label>
+            <input 
+              type="text" 
+              id="student-first-name"
+              formControlName="first_name"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'first_name')">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'first_name')">
+              {{getFieldError(studentForm, 'first_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-last-name">Nom *</label>
+            <input 
+              type="text" 
+              id="student-last-name"
+              formControlName="last_name"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'last_name')">
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'last_name')">
+              {{getFieldError(studentForm, 'last_name')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-class">Classe *</label>
+            <select 
+              id="student-class"
+              formControlName="class_id"
+              class="form-control"
+              [class.error]="getFieldError(studentForm, 'class_id')">
+              <option value="">Sélectionner une classe</option>
+              <option *ngFor="let class of classes" [value]="class.id">{{class.name}}</option>
+            </select>
+            <div class="error-message" *ngIf="getFieldError(studentForm, 'class_id')">
+              {{getFieldError(studentForm, 'class_id')}}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-phone">Téléphone</label>
+            <input 
+              type="tel" 
+              id="student-phone"
+              formControlName="phone"
+              class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="student-birth-date">Date de naissance</label>
+            <input 
+              type="date" 
+              id="student-birth-date"
+              formControlName="birth_date"
+              class="form-control">
+          </div>
+          <div class="form-group full-width">
+            <label for="student-address">Adresse</label>
+            <textarea 
+              id="student-address"
+              formControlName="address"
+              class="form-control"
+              rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeStudentModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="studentForm.invalid">
+            <i class="bi bi-check"></i>
+            {{studentModal.mode === 'create' ? 'Créer' : 'Modifier'}}
+          </button>
+        </div>
+      </form>
+
+      <!-- View Mode -->
+      <div *ngIf="studentModal.mode === 'view' && studentModal.data" class="view-content">
+        <div class="view-grid">
+          <div class="view-item">
+            <label>Nom complet</label>
+            <span>{{studentModal.data.full_name}}</span>
+          </div>
+          <div class="view-item">
+            <label>Matricule</label>
+            <span class="matricule-badge">{{studentModal.data.matricule}}</span>
+          </div>
+          <div class="view-item">
+            <label>Classe</label>
+            <span>{{getClassNameById(studentModal.data.class_id)}}</span>
+          </div>
+          <div class="view-item">
+            <label>Téléphone</label>
+            <span>{{studentModal.data.phone || 'Non renseigné'}}</span>
+          </div>
+          <div class="view-item">
+            <label>Date de naissance</label>
+            <span>{{studentModal.data.birth_date | date:'dd/MM/yyyy'}}</span>
+          </div>
+          <div class="view-item full-width">
+            <label>Adresse</label>
+            <span>{{studentModal.data.address || 'Non renseigné'}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

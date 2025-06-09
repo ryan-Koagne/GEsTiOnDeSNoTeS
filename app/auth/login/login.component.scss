@@ -1,0 +1,67 @@
+/* login.component.scss */
+:host {
+  display: block;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.2);
+  border-color: #86b7fe;
+}
+
+.form-check-label.card {
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+.form-check-input:checked + .form-check-label.card {
+  border-color: #0d6efd;
+  background-color: #f0f7ff;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background-color: #86b7fe;
+    border-color: #86b7fe;
+  }
+}
+
+/* Animation de fond */
+.container-fluid {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 300%;
+    height: 300%;
+    top: -100%;
+    left: -100%;
+    background: radial-gradient(circle, rgba(13,110,253,0.1) 0%, transparent 70%);
+    z-index: 0;
+  }
+}
